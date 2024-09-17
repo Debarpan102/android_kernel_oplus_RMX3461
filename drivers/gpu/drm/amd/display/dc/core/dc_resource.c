@@ -1315,6 +1315,9 @@ bool dc_remove_plane_from_context(
 	struct dc_stream_status *stream_status = NULL;
 	struct resource_pool *pool = dc->res_pool;
 
+	if (!plane_state)
+		return true;
+
 	for (i = 0; i < context->stream_count; i++)
 		if (context->streams[i] == stream) {
 			stream_status = &context->stream_status[i];
@@ -1546,6 +1549,10 @@ bool dc_is_stream_unchanged(
 	if (old_stream->ignore_msa_timing_param != stream->ignore_msa_timing_param)
 		return false;
 
+	/*compare audio info*/
+	if (memcmp(&old_stream->audio_info, &stream->audio_info, sizeof(stream->audio_info)) != 0)
+		return false;
+
 	return true;
 }
 
@@ -1638,6 +1645,9 @@ static struct audio *find_first_free_audio(
 		enum engine_id id)
 {
 	int i, available_audio_count;
+
+	if (id == ENGINE_ID_UNKNOWN)
+		return NULL;
 
 	available_audio_count = pool->audio_count;
 

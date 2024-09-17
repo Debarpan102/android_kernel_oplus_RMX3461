@@ -14,6 +14,10 @@
  * @req_node: entry in list of requests for the particular @node
  * @node: the interconnect node to which this constraint applies
  * @dev: reference to the device that sets the constraints
+<<<<<<< HEAD
+=======
+ * @enabled: indicates whether the path with this request is enabled
+>>>>>>> 9ff959f9401b53ef1514579ac6d29545649db553
  * @tag: path tag (optional)
  * @avg_bw: an integer describing the average bandwidth in kBps
  * @peak_bw: an integer describing the peak bandwidth in kBps
@@ -22,6 +26,8 @@ struct icc_req {
 	struct hlist_node req_node;
 	struct icc_node *node;
 	struct device *dev;
+	
+	bool enabled;
 	u32 tag;
 	u32 avg_bw;
 	u32 peak_bw;

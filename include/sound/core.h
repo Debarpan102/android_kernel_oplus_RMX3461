@@ -124,6 +124,9 @@ struct snd_card {
 	wait_queue_head_t offline_poll_wait;
 #endif
 
+	size_t total_pcm_alloc_bytes;	/* total amount of allocated buffers */
+	struct mutex memory_mutex;	/* protection for the above */
+
 #ifdef CONFIG_PM
 	unsigned int power_state;	/* power state */
 	wait_queue_head_t power_sleep;
@@ -449,5 +452,13 @@ snd_pci_quirk_lookup_id(u16 vendor, u16 device,
 	return NULL;
 }
 #endif
+
+/* async signal helpers */
+struct snd_fasync;
+
+int snd_fasync_helper(int fd, struct file *file, int on,
+		      struct snd_fasync **fasyncp);
+void snd_kill_fasync(struct snd_fasync *fasync, int signal, int poll);
+void snd_fasync_free(struct snd_fasync *fasync);
 
 #endif /* __SOUND_CORE_H */
