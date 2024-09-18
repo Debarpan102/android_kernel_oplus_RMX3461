@@ -495,9 +495,8 @@ alternative_endif
 /*
  * Exception vectors.
  */
-	.pushsection 
-        .entry.text
-        .ax
+	.pushsection ".entry.text", "ax"
+
 	.align	11
 ENTRY(vectors)
 	kernel_ventry	1, sync_invalid			// Synchronous EL1t
@@ -1193,9 +1192,7 @@ alternative_endif
  * The order must match __bp_harden_el1_vectors and the
  * arm64_bp_harden_el1_vectors enum.
  */
-	.pushsection 
-        .entry.tramp.text
-        .ax
+	.pushsection ".entry.tramp.text", "ax"
 	.align	11
 ENTRY(tramp_vectors)
 #ifdef CONFIG_MITIGATE_SPECTRE_BRANCH_HISTORY
@@ -1258,9 +1255,7 @@ __entry_tramp_data_this_cpu_vector:
 	.endm
 
 /* The order must match tramp_vecs and the arm64_bp_harden_el1_vectors enum. */
-	.pushsection 
-        .entry.text
-        .ax
+	.pushsection ".entry.text","ax"
 	.align	11
 SYM_CODE_START(__bp_harden_el1_vectors)
 #ifdef CONFIG_MITIGATE_SPECTRE_BRANCH_HISTORY
@@ -1348,9 +1343,8 @@ NOKPROBE(ret_from_fork)
  * copy.
  */
 .ltorg
-.pushsection 
-.entry.tramp.text
-.ax
+.pushsection ".entry.tramp.text", "ax"
+
 ENTRY(__sdei_asm_entry_trampoline)
 	mrs	x4, ttbr1_el1
 	tbz	x4, #USER_ASID_BIT, 1f
