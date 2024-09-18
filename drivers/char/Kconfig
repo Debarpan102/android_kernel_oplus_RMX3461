@@ -640,7 +640,6 @@ config RANDOM_TRUST_BOOTLOADER
 	booloader is trustworthy so it will be added to the kernel's entropy
 	pool. Otherwise, say N here so it will be regarded as device input that
 	only mixes the entropy pool.
-=======
 	  Initialize the RNG using a seed supplied by the bootloader or boot
 	  environment (e.g. EFI or a bootloader-generated device tree). This
 	  seed is not used directly, but is rather hashed into the main input
