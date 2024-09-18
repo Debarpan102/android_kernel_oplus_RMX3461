@@ -684,37 +684,7 @@ static int oom_reaper(void *unused)
 	return 0;
 }
 
-static void wake_oom_reaper(struct timer_list *timer)
-{
-	struct task_struct *tsk = container_of(timer, struct task_struct,
-			oom_reaper_timer);
-	struct mm_struct *mm = tsk->signal->oom_mm;
-	unsigned long flags;
-
-	/* The victim managed to terminate on its own - see exit_mmap */
-	if (test_bit(MMF_OOM_SKIP, &mm->flags)) {
-		put_task_struct(tsk);
-		return;
-	}
-
-	spin_lock_irqsave(&oom_reaper_lock, flags);
-	tsk->oom_reaper_list = oom_reaper_list;
-	oom_reaper_list = tsk;
-	spin_unlock_irqrestore(&oom_reaper_lock, flags);
-	trace_wake_reaper(tsk->pid);
-	wake_up(&oom_reaper_wait);
-}
-
-/*
- * Give the OOM victim time to exit naturally before invoking the oom_reaping.
- * The timers timeout is arbitrary... the longer it is, the longer the worst
- * case scenario for the OOM can take. If it is too small, the oom_reaper can
- * get in the way and release resources needed by the process exit path.
- * e.g. The futex robust list can sit in Anon|Private memory that gets reaped
- * before the exit path is able to wake the futex waiters.
- */
-#define OOM_REAPER_DELAY (2*HZ)
-static void queue_oom_reaper(struct task_struct *tsk)
+static void wake_oom_reaper(struct task_struct *tsk)
 {
 	/*
 	 * Move the lock here to avoid scenario of queuing
@@ -737,10 +707,6 @@ static void queue_oom_reaper(struct task_struct *tsk)
 	spin_unlock(&oom_reaper_lock);
 	trace_wake_reaper(tsk->pid);
 	wake_up(&oom_reaper_wait);
-	timer_setup(&tsk->oom_reaper_timer, wake_oom_reaper, 0);
-	tsk->oom_reaper_timer.expires = jiffies + OOM_REAPER_DELAY;
-	add_timer(&tsk->oom_reaper_timer);
-
 }
 
 static int __init oom_init(void)
