@@ -972,7 +972,8 @@ static void __oom_kill_process(struct task_struct *victim, const char *message)
 	}
 	rcu_read_unlock();
 
-	if 
+	if (can_oom_reap)
+		wake_oom_reaper(victim);
 
 	mmdrop(mm);
 	put_task_struct(victim);
