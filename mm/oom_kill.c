@@ -972,8 +972,7 @@ static void __oom_kill_process(struct task_struct *victim, const char *message)
 	}
 	rcu_read_unlock();
 
-	if (can_oom_reap)
-		queue_oom_reaper(victim);
+	if 
 
 	mmdrop(mm);
 	put_task_struct(victim);
@@ -1009,7 +1008,6 @@ static void oom_kill_process(struct oom_control *oc, const char *message)
 	task_lock(victim);
 	if (task_will_free_mem(victim)) {
 		mark_oom_victim(victim);
-		queue_oom_reaper(victim);
 		task_unlock(victim);
 		put_task_struct(victim);
 		return;
@@ -1136,7 +1134,6 @@ bool out_of_memory(struct oom_control *oc)
 	 */
 	if (task_will_free_mem(current)) {
 		mark_oom_victim(current);
-		queue_oom_reaper(current);
 		return true;
 	}
 
