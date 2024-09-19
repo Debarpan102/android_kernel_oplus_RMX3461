@@ -321,8 +321,8 @@ void dma_direct_unmap_page(struct device *dev, dma_addr_t addr,
 		dma_direct_sync_single_for_cpu(dev, addr, size, dir);
 
 	if (unlikely(is_swiotlb_buffer(phys)))
-		swiotlb_tbl_unmap_single(dev, phys, size, size, dir,
-					 attrs | DMA_ATTR_SKIP_CPU_SYNC);
+		swiotlb_tbl_unmap_single(dev, phys, size, size, dir, attrs);
+					 
 }
 EXPORT_SYMBOL(dma_direct_unmap_page);
 
@@ -360,8 +360,7 @@ dma_addr_t dma_direct_map_page(struct device *dev, struct page *page,
 	}
 
 	if (!is_dma_coherent(dev, attrs) && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-                arch_sync_dma_for_device(phys_addr_t paddr, size_t size,
-		enum dma_data_direction dir);
+                arch_sync_dma_for_device(dev, phys, size, dir);
 
 	return dma_addr;
 }
