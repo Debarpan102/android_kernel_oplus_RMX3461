@@ -1276,13 +1276,6 @@ static struct attribute *sugov_attrs[] = {
 };
 ATTRIBUTE_GROUPS(sugov);
 
-static void sugov_tunables_free(struct kobject *kobj)
-{
-	struct gov_attr_set *attr_set = container_of(kobj, struct gov_attr_set, kobj);
-
-	kfree(to_sugov_tunables(attr_set));
-}
-
 static struct kobj_type sugov_tunables_ktype = {
 	.default_groups = sugov_groups,
 	.sysfs_ops = &governor_sysfs_ops,
