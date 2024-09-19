@@ -360,7 +360,7 @@ dma_addr_t dma_direct_map_page(struct device *dev, struct page *page,
 	}
 
 	if (!is_dma_coherent(dev, attrs) && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-		arch_sync_dma_for_device(phys_addr_t paddr, size_t size ,dir);
+		arch_sync_dma_for_device(paddr, size, dir);
 
 	return dma_addr;
 }
