@@ -2426,7 +2426,7 @@ retry:
 	}
 
 	if (c) {
-		rc = ocontext_to_sid(c, 0, out_sid);
+		rc = ocontext_to_sid(sidtab, c, 0, out_sid);
 		if (rc == -ESTALE)
 			goto retry;
 		if (rc)
@@ -2606,7 +2606,7 @@ retry:
 
 	if (c) {
 	
-		rc = ocontext_to_sid(c, 0, out_sid);
+		rc = ocontext_to_sid(sidtab, c, 0, out_sid);
 		if (rc == -ESTALE)
 			goto retry;
 		if (rc)
@@ -2801,8 +2801,7 @@ static inline int __security_genfs_sid(struct selinux_state *state,
 	if (!c)
 		return -ENOENT;
 
-	return ocontext_to_sid(c, 0, sid);
-
+	return ocontext_to_sid(sidtab, c, 0, sid);
 }
 
 /**
