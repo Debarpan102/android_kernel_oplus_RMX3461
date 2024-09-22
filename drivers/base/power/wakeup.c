@@ -1033,7 +1033,7 @@ void pm_system_irq_wakeup(unsigned int irq_number)
 		}
 		
 
-	raw_spin_lock_irqsave(&wakeup_irq_lock, flags);
+	raw_spin_lock_irqsave(&wakeup_irq_lock);
 
 	if (wakeup_irq[0] == 0)
 		wakeup_irq[0] = irq_number;
@@ -1042,7 +1042,7 @@ void pm_system_irq_wakeup(unsigned int irq_number)
 	else
 		irq_number = 0;
 
-	raw_spin_unlock_irqrestore(&wakeup_irq_lock, flags);
+	raw_spin_unlock_irqrestore(&wakeup_irq_lock);
 
 	if (irq_number)
 
