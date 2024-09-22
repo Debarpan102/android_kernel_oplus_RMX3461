@@ -1009,7 +1009,6 @@ void pm_wakeup_clear(unsigned int irq_number)
 
 void pm_system_irq_wakeup(unsigned int irq_number)
 {
-
 	struct irq_desc *desc;
 	const char *name = "null";
 
@@ -1031,25 +1030,11 @@ void pm_system_irq_wakeup(unsigned int irq_number)
 				WS_CNT_POWERKEY|WS_CNT_RTCALARM|WS_CNT_MODEM|WS_CNT_WLAN|WS_CNT_MODEM|WS_CNT_WLAN|WS_CNT_ADSP|WS_CNT_CDSP|WS_CNT_SLPI);
 			#endif
 		}
-		
-
-	raw_spin_lock_irqsave(&wakeup_irq_lock);
-
-	if (wakeup_irq[0] == 0)
-		wakeup_irq[0] = irq_number;
-	else if (wakeup_irq[1] == 0)
-		wakeup_irq[1] = irq_number;
-	else
-		irq_number = 0;
-
-	raw_spin_unlock_irqrestore(&wakeup_irq_lock);
-
-	if (irq_number)
-
+		pm_wakeup_irq = irq_number;
 		pm_system_wakeup();
-
 	}
 }
+
 
 unsigned int pm_wakeup_irq(void)
 {
