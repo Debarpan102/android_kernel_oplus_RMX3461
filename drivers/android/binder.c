@@ -3967,7 +3967,7 @@ binder_free_buf(struct binder_proc *proc,
 		binder_node_inner_unlock(buf_node);
 	}
 	trace_binder_transaction_buffer_release(buffer);
-	binder_release_entire_buffer(proc, thread, buffer, is_failure);
+	binder_transaction_buffer_release(proc, buffer, 0, false);
 	binder_alloc_free_buf(&proc->alloc, buffer);
 }
 
