@@ -316,9 +316,8 @@ struct inode *fuse_iget(struct super_block *sb, u64 nodeid,
 		make_bad_inode(inode);
 		iput(inode);
 		goto retry;
-		}
-
 	}
+
 
 	fi = get_fuse_inode(inode);
 	spin_lock(&fi->lock);
