@@ -1032,7 +1032,7 @@ void pm_system_irq_wakeup(unsigned int irq_number)
 			#endif
 		}
 		
-		pm_wakeup_irq = irq_number;
+		
 
 	unsigned long flags;
 
@@ -1049,6 +1049,7 @@ void pm_system_irq_wakeup(unsigned int irq_number)
 
 	if (irq_number)
 
+		pm_wakeup_irq = irq_number;
 		pm_system_wakeup();
 
 	}
