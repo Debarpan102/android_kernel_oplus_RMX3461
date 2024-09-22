@@ -304,35 +304,6 @@ enum binder_deferred_state {
  *
  * Bookkeeping structure for binder processes
  */
-struct binder_proc {
-	struct hlist_node proc_node;
-	struct rb_root threads;
-	struct rb_root nodes;
-	struct rb_root refs_by_desc;
-	struct rb_root refs_by_node;
-	struct list_head waiting_threads;
-	int pid;
-	struct task_struct *tsk;
-	const struct cred *cred;
-	struct hlist_node deferred_work_node;
-	int deferred_work;
-	bool is_dead;
-
-	struct list_head todo;
-	struct binder_stats stats;
-	struct list_head delivered_death;
-	u32 max_threads;
-	int requested_threads;
-	int requested_threads_started;
-	int tmp_ref;
-	long default_priority;
-	struct dentry *debugfs_entry;
-	struct binder_alloc alloc;
-	struct binder_context *context;
-	spinlock_t inner_lock;
-	spinlock_t outer_lock;
-	struct dentry *binderfs_entry;
-};
 
 enum {
 	BINDER_LOOPER_STATE_REGISTERED  = 0x01,
@@ -2492,7 +2463,7 @@ static int binder_translate_handle(struct flat_binder_object *fp,
 				  proc->pid, thread->pid, fp->handle);
 		return -EINVAL;
 	}
-	if (security_binder_transfer_binder(proc->cred, target_proc->cred)) {
+	if (security_binder_transfer_binder(get_task_cred(proc->tsk), get_task_cred(target_proc->tsk))) {
 		ret = -EPERM;
 		goto done;
 	}
@@ -2580,7 +2551,7 @@ static int binder_translate_fd(u32 fd, binder_size_t fd_offset,
 		ret = -EBADF;
 		goto err_fget;
 	}
-	ret = security_binder_transfer_file(proc->cred, target_proc->cred, file);
+	ret = security_binder_transfer_file(get_task_cred(proc->tsk), get_task_cred(target_proc->tsk), file);
 	if (ret < 0) {
 		ret = -EPERM;
 		goto err_security;
@@ -3300,17 +3271,7 @@ static void binder_transaction(struct binder_proc *proc,
 #endif /*OPLUS_FEATURE_HANS_FREEZE*/
 		e->to_node = target_node->debug_id;
 
-		if (security_binder_transaction(proc->tsk,
-						target_proc->tsk) < 0) {
-
-		if (WARN_ON(proc == target_proc)) {
-			return_error = BR_FAILED_REPLY;
-			return_error_param = -EINVAL;
-			return_error_line = __LINE__;
-			goto err_invalid_target_handle;
-		}
-		if (security_binder_transaction(proc->cred,
-						target_proc->cred) < 0) {
+		if (security_binder_transaction(get_task_cred(proc->tsk), get_task_cred(target_proc->tsk)) < 0) {
 
 			return_error = BR_FAILED_REPLY;
 			return_error_param = -EPERM;
@@ -3446,7 +3407,7 @@ static void binder_transaction(struct binder_proc *proc,
 		u32 secid;
 		size_t added_size;
 
-		security_cred_getsecid(proc->cred, &secid);
+		security_task_getsecid(proc->tsk, &secid);
 		ret = security_secid_to_secctx(secid, &secctx, &secctx_sz);
 		if (ret) {
 			return_error = BR_FAILED_REPLY;
