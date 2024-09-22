@@ -62,9 +62,6 @@
 #include <asm/irq_regs.h>
 #include <asm/io.h>
 
-#define CREATE_TRACE_POINTS
-#include <trace/events/random.h>
-
 /* #define ADD_INTERRUPT_BENCH */
 
 /*
