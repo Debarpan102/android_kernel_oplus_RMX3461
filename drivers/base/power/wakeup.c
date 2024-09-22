@@ -1046,7 +1046,6 @@ void pm_system_irq_wakeup(unsigned int irq_number)
 
 	if (irq_number)
 
-		pm_wakeup_irq = irq_number;
 		pm_system_wakeup();
 
 	}
