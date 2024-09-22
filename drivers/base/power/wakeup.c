@@ -1031,6 +1031,7 @@ void pm_system_irq_wakeup(unsigned int irq_number)
 				WS_CNT_POWERKEY|WS_CNT_RTCALARM|WS_CNT_MODEM|WS_CNT_WLAN|WS_CNT_MODEM|WS_CNT_WLAN|WS_CNT_ADSP|WS_CNT_CDSP|WS_CNT_SLPI);
 			#endif
 		}
+		
 		pm_wakeup_irq = irq_number;
 
 	unsigned long flags;
@@ -1049,6 +1050,8 @@ void pm_system_irq_wakeup(unsigned int irq_number)
 	if (irq_number)
 
 		pm_system_wakeup();
+
+	}
 }
 
 unsigned int pm_wakeup_irq(void)
