@@ -1032,9 +1032,6 @@ void pm_system_irq_wakeup(unsigned int irq_number)
 			#endif
 		}
 		
-		
-
-	unsigned long flags;
 
 	raw_spin_lock_irqsave(&wakeup_irq_lock, flags);
 
