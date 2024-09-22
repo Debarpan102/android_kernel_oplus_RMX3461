@@ -822,8 +822,6 @@ static inline u64 fuse_get_attr_version(struct fuse_conn *fc)
 	return atomic64_read(&fc->attr_version);
 }
 
-<<<<<<< HEAD
-=======
 static inline void fuse_make_bad(struct inode *inode)
 {
 	set_bit(FUSE_I_BAD, &get_fuse_inode(inode)->state);
@@ -834,7 +832,6 @@ static inline bool fuse_is_bad(struct inode *inode)
 	return unlikely(test_bit(FUSE_I_BAD, &get_fuse_inode(inode)->state));
 }
 
->>>>>>> 9ff959f9401b53ef1514579ac6d29545649db553
 /** Device operations */
 extern const struct file_operations fuse_dev_operations;
 
