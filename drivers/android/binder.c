@@ -2446,7 +2446,7 @@ static int binder_translate_binder(struct flat_binder_object *fp,
 		ret = -EINVAL;
 		goto done;
 	}
-	if (security_binder_transfer_binder(proc->cred, target_proc->cred)) {
+	if (security_binder_transfer_binder(get_task_cred(proc->tsk), get_task_cred(target_proc->tsk))) {
 		ret = -EPERM;
 		goto done;
 	}
