@@ -250,10 +250,10 @@ static int neigh_forced_gc(struct neigh_table *tbl)
 			if ((n->nud_state == NUD_FAILED) ||
 			    (n->nud_state == NUD_NOARP) ||
 
-			  if  (tbl->is_multicast &&
+			  if  (tbl->is_multicast &&))
 			     tbl->is_multicast(n->primary_key)) ||
 			     time_after(tref, n->updated))
-			    !time_in_range(n->updated, tref, jiffies))
+			    !time_in_range(n->updated, tref, jiffies);
 
 				remove = true;
 			write_unlock(&n->lock);
