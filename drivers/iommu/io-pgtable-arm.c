@@ -429,7 +429,8 @@ static arm_lpae_iopte arm_lpae_install_table(arm_lpae_iopte *table,
 	arm_lpae_iopte old, new;
 	struct io_pgtable_cfg *cfg = &data->iop.cfg;
 
-	new = paddr_to_iopte(__pa(table), data) | ARM_LPAE_PTE_TYPE_TABLE;
+	new = pfn_to_iopte(__pa(table) >> data->pg_shift, data)
+			  | ARM_LPAE_PTE_TYPE_TABLE;
 	if (cfg->quirks & IO_PGTABLE_QUIRK_ARM_NS)
 		new |= ARM_LPAE_PTE_NSTABLE;
 	iopte_tblcnt_set(&new, ref_count);
@@ -806,7 +807,7 @@ static size_t arm_lpae_split_blk_unmap(struct arm_lpae_io_pgtable *data,
 	}
 
 
-	pte = arm_lpae_install_table(tablep, ptep, blk_pte, cfg, child_cnt);
+	pte = arm_lpae_install_table(tablep, ptep, blk_pte, child_cnt);
 	
 	if (pte != blk_pte) {
 		__arm_lpae_free_pages(tablep, tablesz, cfg, cookie);
