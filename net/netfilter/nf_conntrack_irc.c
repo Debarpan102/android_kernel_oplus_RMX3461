@@ -601,6 +601,8 @@ static int help(struct sk_buff *skb, unsigned int protoff,
  out:
 	spin_unlock_bh(&irc_buffer_lock);
 	return ret;
+   }
+
 }
 
 static struct nf_conntrack_helper irc[MAX_PORTS] __read_mostly;
