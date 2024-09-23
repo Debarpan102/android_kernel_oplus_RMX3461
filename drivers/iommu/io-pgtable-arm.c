@@ -807,8 +807,7 @@ static size_t arm_lpae_split_blk_unmap(struct arm_lpae_io_pgtable *data,
 	}
 
 
-	pte = arm_lpae_install_table(tablep, ptep, blk_pte, child_cnt);
-	
+	pte = arm_lpae_install_table(tablep, ptep, blk_pte, cfg, child_cnt);
 	if (pte != blk_pte) {
 		__arm_lpae_free_pages(tablep, tablesz, cfg, cookie);
 		/*
