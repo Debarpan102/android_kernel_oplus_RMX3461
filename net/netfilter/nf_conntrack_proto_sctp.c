@@ -398,52 +398,26 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
 	for_each_sctp_chunk (skb, sch, _sch, offset, dataoff, count) {
 		/* Special cases of Verification tag check (Sec 8.5.1) */
 		if (sch->type == SCTP_CID_INIT) {
-			/* (A) vtag MUST be zero */
+			/* Sec 8.5.1 (A) */
 			if (sh->vtag != 0)
 				goto out_unlock;
 		} else if (sch->type == SCTP_CID_ABORT) {
-			/* (B) vtag MUST match own vtag if T flag is unset OR
-			 * MUST match peer's vtag if T flag is set
-			 */
-			if ((!(sch->flags & SCTP_CHUNK_FLAG_T) &&
-			     sh->vtag != ct->proto.sctp.vtag[dir]) ||
-			    ((sch->flags & SCTP_CHUNK_FLAG_T) &&
-			     sh->vtag != ct->proto.sctp.vtag[!dir]))
+			/* Sec 8.5.1 (B) */
+			if (sh->vtag != ct->proto.sctp.vtag[dir] &&
+			    sh->vtag != ct->proto.sctp.vtag[!dir])
 				goto out_unlock;
 		} else if (sch->type == SCTP_CID_SHUTDOWN_COMPLETE) {
-			/* (C) vtag MUST match own vtag if T flag is unset OR
-			 * MUST match peer's vtag if T flag is set
-			 */
-			if ((!(sch->flags & SCTP_CHUNK_FLAG_T) &&
-			     sh->vtag != ct->proto.sctp.vtag[dir]) ||
-			    ((sch->flags & SCTP_CHUNK_FLAG_T) &&
-			     sh->vtag != ct->proto.sctp.vtag[!dir]))
+			/* Sec 8.5.1 (C) */
+			if (sh->vtag != ct->proto.sctp.vtag[dir] &&
+			    sh->vtag != ct->proto.sctp.vtag[!dir] &&
+			    sch->flags & SCTP_CHUNK_FLAG_T)
 				goto out_unlock;
 		} else if (sch->type == SCTP_CID_COOKIE_ECHO) {
-			/* (D) vtag must be same as init_vtag as found in INIT_ACK */
+			/* Sec 8.5.1 (D) */
 			if (sh->vtag != ct->proto.sctp.vtag[dir])
 				goto out_unlock;
-				
-		} else if (sch->type == SCTP_CID_COOKIE_ACK) {
-			ct->proto.sctp.init[dir] = 0;
-			ct->proto.sctp.init[!dir] = 0;
-		} else if (sch->type == SCTP_CID_HEARTBEAT) {
-			if (ct->proto.sctp.vtag[dir] == 0) {
-				pr_debug("Setting %d vtag %x for dir %d\n", sch->type, sh->vtag, dir);
-				ct->proto.sctp.vtag[dir] = sh->vtag;
-			} else if (sh->vtag != ct->proto.sctp.vtag[dir]) {
-				if (test_bit(SCTP_CID_DATA, map) || ignore)
-					goto out_unlock;
-
-				ct->proto.sctp.flags |= SCTP_FLAG_HEARTBEAT_VTAG_FAILED;
-				ct->proto.sctp.last_dir = dir;
-				ignore = true;
-				continue;
-			} else if (ct->proto.sctp.flags & SCTP_FLAG_HEARTBEAT_VTAG_FAILED) {
-				ct->proto.sctp.flags &= ~SCTP_FLAG_HEARTBEAT_VTAG_FAILED;
-			}
-		} else if (sch->type == SCTP_CID_HEARTBEAT_ACK) {
-
+		} else if (sch->type == SCTP_CID_HEARTBEAT ||
+			   sch->type == SCTP_CID_HEARTBEAT_ACK) {
 			if (ct->proto.sctp.vtag[dir] == 0) {
 				pr_debug("Setting vtag %x for dir %d\n",
 					 sh->vtag, dir);
@@ -466,55 +440,22 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
 		}
 
 		/* If it is an INIT or an INIT ACK note down the vtag */
-		if (sch->type == SCTP_CID_INIT) {
-			struct sctp_inithdr _ih, *ih;
+		if (sch->type == SCTP_CID_INIT ||
+		    sch->type == SCTP_CID_INIT_ACK) {
+			struct sctp_inithdr _inithdr, *ih;
 
-			ih = skb_header_pointer(skb, offset + sizeof(_sch), sizeof(*ih), &_ih);
-			if (!ih)
+			ih = skb_header_pointer(skb, offset + sizeof(_sch),
+						sizeof(_inithdr), &_inithdr);
+			if (ih == NULL)
 				goto out_unlock;
-
-			if (ct->proto.sctp.init[dir] && ct->proto.sctp.init[!dir])
-				ct->proto.sctp.init[!dir] = 0;
-			ct->proto.sctp.init[dir] = 1;
-
-			pr_debug("Setting vtag %x for dir %d\n", ih->init_tag, !dir);
-			ct->proto.sctp.vtag[!dir] = ih->init_tag;
-
-			/* don't renew timeout on init retransmit so
-			 * port reuse by client or NAT middlebox cannot
-			 * keep entry alive indefinitely (incl. nat info).
-			 */
-			if (new_state == SCTP_CONNTRACK_CLOSED &&
-			    old_state == SCTP_CONNTRACK_CLOSED &&
-			    nf_ct_is_confirmed(ct))
-				ignore = true;
-		} else if (sch->type == SCTP_CID_INIT_ACK) {
-			struct sctp_inithdr _ih, *ih;
-			__be32 vtag;
-
-			ih = skb_header_pointer(skb, offset + sizeof(_sch), sizeof(*ih), &_ih);
-			if (!ih)
-				goto out_unlock;
-
-			vtag = ct->proto.sctp.vtag[!dir];
-			if (!ct->proto.sctp.init[!dir] && vtag && vtag != ih->init_tag)
-				goto out_unlock;
-			/* collision */
-			if (ct->proto.sctp.init[dir] && ct->proto.sctp.init[!dir] &&
-			    vtag != ih->init_tag)
-				goto out_unlock;
-
-			pr_debug("Setting vtag %x for dir %d\n", ih->init_tag, !dir);
+			pr_debug("Setting vtag %x for dir %d\n",
+				 ih->init_tag, !dir);
 			ct->proto.sctp.vtag[!dir] = ih->init_tag;
 		}
 
 		ct->proto.sctp.state = new_state;
-		if (old_state != new_state) {
+		if (old_state != new_state)
 			nf_conntrack_event_cache(IPCT_PROTOINFO, ct);
-			if (new_state == SCTP_CONNTRACK_ESTABLISHED &&
-			    !test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
-				nf_conntrack_event_cache(IPCT_ASSURED, ct);
-		}
 	}
 	spin_unlock_bh(&ct->lock);
 
@@ -524,6 +465,14 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
 
 	nf_ct_refresh_acct(ct, ctinfo, skb, timeouts[new_state]);
 
+	if (old_state == SCTP_CONNTRACK_COOKIE_ECHOED &&
+	    dir == IP_CT_DIR_REPLY &&
+	    new_state == SCTP_CONNTRACK_ESTABLISHED) {
+		pr_debug("Setting assured bit\n");
+		set_bit(IPS_ASSURED_BIT, &ct->status);
+		nf_conntrack_event_cache(IPCT_ASSURED, ct);
+	}
+
 	return NF_ACCEPT;
 
 out_unlock:
@@ -531,6 +480,7 @@ out_unlock:
 out:
 	return -NF_ACCEPT;
 }
+		
 
 static bool sctp_can_early_drop(const struct nf_conn *ct)
 {
