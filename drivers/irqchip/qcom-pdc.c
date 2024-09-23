@@ -105,6 +105,7 @@ static void pdc_enable_intr(struct irq_data *d, bool on)
 
 	ipc_log_string(pdc_ipc_log, "PIN=%d enable=%d", d->hwirq, on);
 	raw_spin_unlock_irqrestore(&pdc_lock, flags);
+}
 
 static void qcom_pdc_gic_disable(struct irq_data *d)
 {
