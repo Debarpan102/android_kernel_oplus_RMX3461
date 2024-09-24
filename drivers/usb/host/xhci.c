@@ -75,7 +75,7 @@ int xhci_handshake(void __iomem *ptr, u32 mask, u32 done, int usec)
 	ret = readl_poll_timeout_atomic(ptr, result,
 					(result & mask) == done ||
 					result == U32_MAX,
-					1, timeout_us);
+					1, usec);
 	if (result == U32_MAX)		/* card removed */
 		return -ENODEV;
 
