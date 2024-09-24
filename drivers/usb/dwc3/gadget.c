@@ -2531,6 +2531,7 @@ static int dwc3_gadget_pullup(struct usb_gadget *g, int is_on)
 	ktime_t			diff;
 
 	is_on = !!is_on;
+	unsigned long flags;
 	spin_lock_irqsave(&dwc->lock, flags);
 	dwc->softconnect = is_on;
 
