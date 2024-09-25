@@ -1,3 +1,4 @@
+
 // SPDX-License-Identifier: GPL-2.0+
 /*
  * XArray implementation
@@ -722,8 +723,6 @@ void xas_create_range(struct xa_state *xas)
 
 		for (;;) {
 			struct xa_node *node = xas->xa_node;
-			if (node->shift >= shift)
-				break;
 			xas->xa_node = xa_parent_locked(xas->xa, node);
 			xas->xa_offset = node->offset - 1;
 			if (node->offset != 0)
@@ -1080,7 +1079,6 @@ void xas_split(struct xa_state *xas, void *entry, unsigned int order)
 					xa_mk_node(child));
 			if (xa_is_value(curr))
 				values--;
-			xas_update(xas, child);
 		} else {
 			unsigned int canon = offset - xas->xa_sibs;
 
@@ -1095,7 +1093,6 @@ void xas_split(struct xa_state *xas, void *entry, unsigned int order)
 	} while (offset-- > xas->xa_offset);
 
 	node->nr_values += values;
-	xas_update(xas, node);
 }
 EXPORT_SYMBOL_GPL(xas_split);
 #endif
